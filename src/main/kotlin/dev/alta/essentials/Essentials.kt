@@ -10,6 +10,7 @@ import net.luckperms.api.LuckPerms
 import com.mongodb.client.MongoClient
 import com.mongodb.client.MongoClients
 import dev.alta.essentials.ranks.manager.RankManager
+import dev.alta.essentials.utils.nametag.NametagManager
 import net.luckperms.api.node.NodeType
 import net.luckperms.api.node.types.PermissionNode
 import org.bukkit.permissions.Permission
@@ -38,6 +39,9 @@ class Essentials : ExtendedJavaPlugin() {
             ?: throw IllegalStateException("LuckPerms not found!")
         setupMongo()
         commandManager = PaperCommandManager(this)
+        
+        // Initialize NametagManager
+        NametagManager
         
         // Rank completions
         commandManager.commandCompletions.registerAsyncCompletion("ranks") { _ ->

@@ -9,14 +9,14 @@ import org.bukkit.event.player.PlayerQuitEvent
 
 @AutoRegister
 class NametagListener : Listener {
-    
+
     @EventHandler
     fun onPlayerJoin(event: PlayerJoinEvent) {
         NametagManager.updatePlayerNametag(event.player)
     }
-    
+
     @EventHandler
     fun onPlayerQuit(event: PlayerQuitEvent) {
-        NametagManager.removeCustomNametag(event.player)
+        NametagManager.removePlayerNametag(event.player)
     }
-} 
+}

@@ -1,103 +1,142 @@
 package dev.alta.essentials.utils.nametag
 
 import dev.alta.essentials.Essentials
+import dev.alta.essentials.utils.permission.PermissionUtils
 import dev.alta.essentials.utils.adventure.MiniMessageUtils.toComponent
-import dev.alta.essentials.utils.async.AsyncUtils
 import net.kyori.adventure.text.Component
-import net.luckperms.api.LuckPerms
-import net.luckperms.api.event.user.UserDataRecalculateEvent
-import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.scoreboard.Team
-import java.util.*
+import net.luckperms.api.event.EventBus
+import net.luckperms.api.event.node.NodeAddEvent
+import net.luckperms.api.event.node.NodeRemoveEvent
+import net.luckperms.api.node.NodeType
+import dev.alta.essentials.utils.async.AsyncUtils
 
 object NametagManager {
-    private val plugin = Essentials.instance
-    private val luckPerms: LuckPerms = Essentials.luckPerms
-    private val scoreboard = Bukkit.getScoreboardManager().mainScoreboard
-    private val teamPriorities = mutableMapOf<String, Int>()
-    private val playerTeams = mutableMapOf<UUID, String>()
+    private val scoreboard = Essentials.instance.server.scoreboardManager.mainScoreboard
 
     init {
-        setupGroupPriorities()
-        registerLuckPermsListener()
-    }
+        // Register LuckPerms event listeners
+        val eventBus: EventBus = Essentials.luckPerms.eventBus
 
-    private fun setupGroupPriorities() {
-        val groups = luckPerms.groupManager.loadedGroups
-        groups.forEach { group ->
-            val weight = group.weight.orElse(0)
-            val teamName = "LP${weight.toString().padStart(3, '0')}${group.name}"
-            teamPriorities[teamName] = weight
-            
-            getOrCreateTeam(teamName).apply {
-                prefix(Component.text(group.cachedData.metaData.prefix ?: ""))
-                suffix(Component.text(group.cachedData.metaData.suffix ?: ""))
+        // Listen for prefix changes (additions)
+        eventBus.subscribe(Essentials.instance, NodeAddEvent::class.java) { event ->
+            if (event.node.type == NodeType.PREFIX) {
+                handlePrefixChange(event.target)
+            }
+        }
+
+        // Listen for prefix changes (removals)
+        eventBus.subscribe(Essentials.instance, NodeRemoveEvent::class.java) { event ->
+            if (event.node.type == NodeType.PREFIX) {
+                handlePrefixChange(event.target)
             }
         }
     }
 
-    private fun registerLuckPermsListener() {
-        luckPerms.eventBus.subscribe(plugin, UserDataRecalculateEvent::class.java) { event ->
-            val player = Bukkit.getPlayer(event.user.uniqueId) ?: return@subscribe
-            updatePlayerNametag(player)
+    private fun handlePrefixChange(target: net.luckperms.api.model.PermissionHolder) {
+        if (target is net.luckperms.api.model.group.Group) {
+            // If a group's prefix changed, update all players in that group
+            AsyncUtils.sync {
+                Essentials.instance.server.onlinePlayers.forEach { player ->
+                    PermissionUtils.getPrimaryGroup(player).thenAccept { group ->
+                        if (group == target.name) {
+                            updatePlayerNametag(player)
+                        }
+                    }
+                }
+            }
         }
     }
 
     fun updatePlayerNametag(player: Player) {
-        AsyncUtils.async {
-            val user = luckPerms.getPlayerAdapter(Player::class.java).getUser(player)
-            val group = user.primaryGroup
-            val weight = luckPerms.groupManager.getGroup(group)?.weight?.orElse(0) ?: 0
-            val teamName = "LP${weight.toString().padStart(3, '0')}${group}"
-
-            AsyncUtils.sync {
-                // Remove from old team
-                playerTeams[player.uniqueId]?.let { oldTeam ->
-                    scoreboard.getTeam(oldTeam)?.removeEntry(player.name)
-                }
-
-                // Add to new team
-                getOrCreateTeam(teamName).addEntry(player.name)
-                playerTeams[player.uniqueId] = teamName
+        PermissionUtils.getPrefix(player).thenAccept { prefix ->
+            val teamName = "LP${player.name}"
+            var team = scoreboard.getTeam(teamName)
+            
+            if (team == null) {
+                team = scoreboard.registerNewTeam(teamName)
             }
-        }
-    }
-
-    fun setCustomNametag(player: Player, prefix: String? = null, suffix: String? = null, priority: Int) {
-        val teamName = "CUSTOM${priority.toString().padStart(3, '0')}${player.name}"
-        
-        // Remove from old team
-        playerTeams[player.uniqueId]?.let { oldTeam ->
-            scoreboard.getTeam(oldTeam)?.removeEntry(player.name)
-        }
-
-        // Create and setup new team
-        getOrCreateTeam(teamName).apply {
-            prefix(prefix?.toComponent() ?: Component.empty())
-            suffix(suffix?.toComponent() ?: Component.empty())
-            addEntry(player.name)
-        }
-        
-        teamPriorities[teamName] = priority
-        playerTeams[player.uniqueId] = teamName
-    }
-
-    private fun getOrCreateTeam(name: String): Team {
-        return scoreboard.getTeam(name) ?: scoreboard.registerNewTeam(name)
-    }
-
-    fun removeCustomNametag(player: Player) {
-        playerTeams[player.uniqueId]?.let { teamName ->
-            if (teamName.startsWith("CUSTOM")) {
-                scoreboard.getTeam(teamName)?.let { team ->
-                    team.removeEntry(player.name)
-                    team.unregister()
+            
+            // Process the prefix and determine team color
+            when {
+                // For MiniMessage color tags
+                prefix?.matches(Regex("^<[a-zA-Z]+>$")) == true -> {
+                    val color = prefix.trim('<', '>')
+                    // Set empty prefix since we're using team color
+                    team.prefix(Component.empty())
+                    // Set team color using the parsed color
+                    team.color(net.kyori.adventure.text.format.NamedTextColor.NAMES.value(color))
                 }
-                playerTeams.remove(player.uniqueId)
-                teamPriorities.remove(teamName)
-                updatePlayerNametag(player)
+                // For legacy color codes
+                prefix?.matches(Regex("^[&§][0-9a-fA-FrRkKlLmMnNoO]$")) == true -> {
+                    // Set empty prefix since we're using team color
+                    team.prefix(Component.empty())
+                    // Convert legacy color code to team color
+                    val colorChar = prefix.last().toLowerCase()
+                    val color = when(colorChar) {
+                        '0' -> net.kyori.adventure.text.format.NamedTextColor.BLACK
+                        '1' -> net.kyori.adventure.text.format.NamedTextColor.DARK_BLUE
+                        '2' -> net.kyori.adventure.text.format.NamedTextColor.DARK_GREEN
+                        '3' -> net.kyori.adventure.text.format.NamedTextColor.DARK_AQUA
+                        '4' -> net.kyori.adventure.text.format.NamedTextColor.DARK_RED
+                        '5' -> net.kyori.adventure.text.format.NamedTextColor.DARK_PURPLE
+                        '6' -> net.kyori.adventure.text.format.NamedTextColor.GOLD
+                        '7' -> net.kyori.adventure.text.format.NamedTextColor.GRAY
+                        '8' -> net.kyori.adventure.text.format.NamedTextColor.DARK_GRAY
+                        '9' -> net.kyori.adventure.text.format.NamedTextColor.BLUE
+                        'a' -> net.kyori.adventure.text.format.NamedTextColor.GREEN
+                        'b' -> net.kyori.adventure.text.format.NamedTextColor.AQUA
+                        'c' -> net.kyori.adventure.text.format.NamedTextColor.RED
+                        'd' -> net.kyori.adventure.text.format.NamedTextColor.LIGHT_PURPLE
+                        'e' -> net.kyori.adventure.text.format.NamedTextColor.YELLOW
+                        'f' -> net.kyori.adventure.text.format.NamedTextColor.WHITE
+                        else -> net.kyori.adventure.text.format.NamedTextColor.WHITE
+                    }
+                    team.color(color)
+                }
+                // For regular prefixes
+                else -> {
+                    team.prefix(prefix?.toComponent() ?: Component.empty())
+                    team.color(null) // Reset team color
+                }
             }
+            
+            // Add player to team
+            team.addEntry(player.name)
+            
+            // Update player's display name with same color logic
+            val displayName = when {
+                // For MiniMessage color tags
+                prefix?.matches(Regex("^<[a-zA-Z]+>$")) == true -> {
+                    val color = prefix.trim('<', '>')
+                    "<$color>${player.name}</$color>".toComponent()
+                }
+                // For legacy color codes
+                prefix?.matches(Regex("^[&§][0-9a-fA-FrRkKlLmMnNoO]$")) == true -> {
+                    Component.text("${prefix.replace('&', '§')}${player.name}")
+                }
+                // For regular prefixes
+                else -> {
+                    prefix?.toComponent()?.append(Component.text(player.name)) 
+                        ?: Component.text(player.name)
+                }
+            }
+            
+            player.displayName(displayName)
         }
     }
-} 
+
+    fun removePlayerNametag(player: Player) {
+        val teamName = "LP${player.name}"
+        val team = scoreboard.getTeam(teamName)
+        team?.removeEntry(player.name)
+        team?.unregister()
+    }
+
+    fun reloadAllNametags() {
+        Essentials.instance.server.onlinePlayers.forEach { player ->
+            updatePlayerNametag(player)
+        }
+    }
+}
