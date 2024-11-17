@@ -13,6 +13,23 @@ import org.bukkit.command.CommandSender
 @CommandPermission("essentials.command.ranks")
 class RankCommand : BaseCommand() {
 
+    @Default
+    @HelpCommand
+    fun onHelp(sender: CommandSender) {
+        sender.sendMiniMessage("""
+            <prefix> <yellow>Available Rank Commands:
+            <gray>• <yellow>/rank create <name> [weight] <gray>- Create a new rank
+            <gray>• <yellow>/rank delete <name> <gray>- Delete a rank
+            <gray>• <yellow>/rank setweight <name> <weight> <gray>- Set a rank's weight
+            <gray>• <yellow>/rank setprefix <name> <prefix> <gray>- Set a rank's prefix
+            <gray>• <yellow>/rank addperm <name> <permission> <gray>- Add a permission to a rank
+            <gray>• <yellow>/rank removeperm <name> [permission] <gray>- Remove a permission from a rank
+            <gray>• <yellow>/rank setparent <name> <parent> <gray>- Set a rank's parent
+            <gray>• <yellow>/rank info <name> <gray>- View information about a rank
+            <gray>• <yellow>/rank list <gray>- List all ranks
+        """.trimIndent())
+    }
+
     @Subcommand("create")
     @CommandPermission("essentials.command.ranks.create")
     @Description("Create a new rank")

@@ -40,17 +40,25 @@ class ConfigManager(private val plugin: Essentials) {
         return configs[name] ?: throw IllegalArgumentException("Config $name not found!")
     }
 
-    fun saveConfig(name: String = "config") {
+    fun saveConfig(name: String = "config", async: Boolean = true) {
         val config = configs[name] ?: throw IllegalArgumentException("Config $name not found!")
         val file = configFiles[name] ?: throw IllegalArgumentException("Config file $name not found!")
 
-        AsyncUtils.async {
+        if (async) {
+            AsyncUtils.async {
+                try {
+                    config.save(file)
+                } catch (e: IOException) {
+                    AsyncUtils.sync {
+                        plugin.logger.severe("Could not save config $name: ${e.message}")
+                    }
+                }
+            }
+        } else {
             try {
                 config.save(file)
             } catch (e: IOException) {
-                AsyncUtils.sync {
-                    plugin.logger.severe("Could not save config $name: ${e.message}")
-                }
+                plugin.logger.severe("Could not save config $name: ${e.message}")
             }
         }
     }
@@ -70,7 +78,7 @@ class ConfigManager(private val plugin: Essentials) {
         configs.keys.forEach { reloadConfig(it) }
     }
 
-    fun saveAllConfigs() {
-        configs.keys.forEach { saveConfig(it) }
+    fun saveAllConfigs(async: Boolean = true) {
+        configs.keys.forEach { saveConfig(it, async) }
     }
 }

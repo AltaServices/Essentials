@@ -66,7 +66,7 @@ class Essentials : ExtendedJavaPlugin() {
     }
 
     override fun disable() {
-        configManager.saveAllConfigs()
+        configManager.saveAllConfigs(async = false)
         _mongoClient?.close()
         _mongoClient = null
     }
