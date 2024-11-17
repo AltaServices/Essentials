@@ -68,7 +68,7 @@ tasks {
         archiveVersion.set("")
         
         relocate("me.lucko.helper", "dev.alta.essentials.libs.helper")
-        relocate("co.aikar.commands", "dev.alta.essentials.libs.acf")
+        relocate("co.aikar.command", "dev.alta.essentials.libs.acf")
         relocate("org.reflections", "dev.alta.essentials.libs.reflections")
         
         mergeServiceFiles()

@@ -27,11 +27,16 @@ class Essentials : ExtendedJavaPlugin() {
     override fun enable() {
         instance = this
         configManager = ConfigManager(this)
-        configManager.createConfig("messages")
         luckPerms = server.servicesManager.getRegistration(LuckPerms::class.java)?.provider
             ?: throw IllegalStateException("LuckPerms not found!")
         setupMongo()
         commandManager = PaperCommandManager(this)
+        
+        // Rank completions
+        commandManager.commandCompletions.registerAsyncCompletion("ranks") { _ ->
+            luckPerms.groupManager.loadedGroups.map { it.name }
+        }
+        
         AnnotationUtils.registerAll(this)
     }
 

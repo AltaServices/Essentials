@@ -11,10 +11,24 @@ import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
 
 object ChatUtils {
-    private val configManager = Essentials.configManager
+    private const val PREFIX = "<gray>[<gradient:gold:yellow>Essentials</gradient>]</gray>"
+    
+    private object Messages {
+        const val NO_PERMISSION = "$PREFIX <red>You don't have permission to use this command!"
+        const val PLAYER_ONLY = "$PREFIX <red>This command can only be used by players!"
+        const val PLAYER_NOT_FOUND = "$PREFIX <red>Player not found!"
+        const val INVALID_ARGUMENTS = "$PREFIX <red>Invalid arguments! Usage: <usage>"
+    }
     
     fun sendMessage(sender: CommandSender, path: String, vararg placeholders: Pair<String, String>) {
-        val message = getMessage(path) ?: return
+        val message = when(path) {
+            "errors.no-permission" -> Messages.NO_PERMISSION
+            "errors.player-only" -> Messages.PLAYER_ONLY
+            "errors.player-not-found" -> Messages.PLAYER_NOT_FOUND
+            "errors.invalid-arguments" -> Messages.INVALID_ARGUMENTS
+            else -> return
+        }
+        
         val resolvers = placeholders.map { (key, value) ->
             Placeholder.parsed(key, value)
         }
@@ -35,15 +49,6 @@ object ChatUtils {
         Essentials.instance.server.sendMessage(component)
     }
     
-    fun broadcastFromConfig(path: String, vararg placeholders: Pair<String, String>) {
-        val message = getMessage(path) ?: return
-        broadcastMessage(message, *placeholders)
-    }
-    
-    private fun getMessage(path: String): String? {
-        return configManager.getConfig("messages").getString(path)
-    }
-    
     fun Audience.sendMiniMessage(message: String) {
         this.sendMessage(message.toComponent())
     }
@@ -54,5 +59,9 @@ object ChatUtils {
     
     fun Component.append(text: String): Component {
         return this.append(text.toComponent())
+    }
+    
+    fun formatChat(player: String, message: String): String {
+        return "$player: $message"
     }
 } 

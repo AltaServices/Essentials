@@ -4,6 +4,7 @@ import dev.alta.essentials.Essentials
 import dev.alta.essentials.staff.collection.StaffSettings
 import dev.alta.essentials.utils.async.AsyncUtils
 import dev.alta.essentials.utils.chat.ChatUtils
+import dev.alta.essentials.utils.chat.ChatUtils.sendMiniMessage
 import dev.alta.essentials.utils.gui.Gui
 import dev.alta.essentials.utils.gui.builder.GuiBuilder
 import dev.alta.essentials.utils.gui.manager.GuiManager
@@ -42,10 +43,10 @@ class StaffGroupSelector(private val player: Player) {
                         AsyncUtils.async {
                             if (StaffSettings.isStaffGroup(groupName)) {
                                 StaffSettings.removeStaffGroup(groupName)
-                                ChatUtils.sendMessage(player, "errors.staff-group-removed", "group" to groupName)
+                                player.sendMiniMessage("<gray>[<gradient:gold:yellow>Essentials</gradient>]</gray> <red>Successfully removed <white>$groupName</white> from staff groups!")
                             } else {
                                 StaffSettings.addStaffGroup(groupName)
-                                ChatUtils.sendMessage(player, "errors.staff-group-added", "group" to groupName)
+                                player.sendMiniMessage("<gray>[<gradient:gold:yellow>Essentials</gradient>]</gray> <green>Successfully added <white>$groupName</white> as a staff group!")
                             }
                             
                             AsyncUtils.sync {
