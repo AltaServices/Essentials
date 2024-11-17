@@ -5,3 +5,28 @@ api-version: '1.20'
 depend: [LuckPerms]
 authors: [AltaServices]
 description: Essential command and features for the network
+
+permissions:
+  essentials.command.ranks:
+    description: Allows access to the rank command
+    children:
+      essentials.command.ranks.create:
+        description: Allows creating new ranks
+      essentials.command.ranks.delete:
+        description: Allows deleting ranks
+      essentials.command.ranks.setweight:
+        description: Allows setting rank weights
+      essentials.command.ranks.setprefix:
+        description: Allows setting rank prefixes
+      essentials.command.ranks.addperm:
+        description: Allows adding permissions to ranks
+      essentials.command.ranks.removeperm:
+        description: Allows removing permissions from ranks
+      essentials.command.ranks.setparent:
+        description: Allows setting rank parents
+      essentials.command.ranks.info:
+        description: Allows viewing rank information
+      essentials.command.ranks.list:
+        description: Allows listing all ranks
+  essentials.command.setstaff:
+    description: Allows access to the setstaff command and GUI
