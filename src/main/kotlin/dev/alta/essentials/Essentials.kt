@@ -9,6 +9,7 @@ import me.lucko.helper.plugin.ExtendedJavaPlugin
 import net.luckperms.api.LuckPerms
 import com.mongodb.client.MongoClient
 import com.mongodb.client.MongoClients
+import dev.alta.essentials.ranks.manager.RankManager
 import net.luckperms.api.node.NodeType
 import net.luckperms.api.node.types.PermissionNode
 import org.bukkit.permissions.Permission
@@ -52,14 +53,21 @@ class Essentials : ExtendedJavaPlugin() {
         
         // Rank-specific permission completions
         commandManager.commandCompletions.registerAsyncCompletion("rankperms") { context: BukkitCommandCompletionContext ->
-            val rankName = context.input.split(" ").firstOrNull()
-            rankName?.let { name ->
-                luckPerms.groupManager.getGroup(name)
-                    ?.nodes
-                    ?.filterIsInstance<PermissionNode>()
-                    ?.map { it.permission }
-                    ?.sorted()
-            } ?: emptyList()
+            val input = context.input
+            val args = input.split(" ")
+            
+            if (args.size >= 2) {
+                val rankName = args[1]
+                val group = luckPerms.groupManager.getGroup(rankName) ?: return@registerAsyncCompletion emptyList()
+                
+                group.nodes
+                    .filterIsInstance<PermissionNode>()
+                    .filter { it.value }
+                    .map { it.permission }
+                    .sorted()
+            } else {
+                emptyList()
+            }
         }
         
         AnnotationUtils.registerAll(this)
