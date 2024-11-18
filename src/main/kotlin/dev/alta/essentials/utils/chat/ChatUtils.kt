@@ -14,8 +14,8 @@ object ChatUtils {
     private const val PREFIX = "<gray>[<gradient:gold:yellow>Essentials</gradient>]</gray>"
     
     private object Messages {
-        const val NO_PERMISSION = "$PREFIX <red>You don't have permission to use this command!"
-        const val PLAYER_ONLY = "$PREFIX <red>This command can only be used by players!"
+        const val NO_PERMISSION = "$PREFIX <red>You don't have permission to use this commands!"
+        const val PLAYER_ONLY = "$PREFIX <red>This commands can only be used by players!"
         const val PLAYER_NOT_FOUND = "$PREFIX <red>Player not found!"
         const val INVALID_ARGUMENTS = "$PREFIX <red>Invalid arguments! Usage: <usage>"
     }

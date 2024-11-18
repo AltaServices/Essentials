@@ -11,6 +11,8 @@ import net.luckperms.api.event.node.NodeAddEvent
 import net.luckperms.api.event.node.NodeRemoveEvent
 import net.luckperms.api.node.NodeType
 import dev.alta.essentials.utils.async.AsyncUtils
+import dev.alta.essentials.utils.color.ColorUtils
+import net.kyori.adventure.text.format.NamedTextColor
 
 object NametagManager {
     private val scoreboard = Essentials.instance.server.scoreboardManager.mainScoreboard
@@ -74,26 +76,8 @@ object NametagManager {
                     team.prefix(Component.empty())
                     // Convert legacy color code to team color
                     val colorChar = prefix.last().toLowerCase()
-                    val color = when(colorChar) {
-                        '0' -> net.kyori.adventure.text.format.NamedTextColor.BLACK
-                        '1' -> net.kyori.adventure.text.format.NamedTextColor.DARK_BLUE
-                        '2' -> net.kyori.adventure.text.format.NamedTextColor.DARK_GREEN
-                        '3' -> net.kyori.adventure.text.format.NamedTextColor.DARK_AQUA
-                        '4' -> net.kyori.adventure.text.format.NamedTextColor.DARK_RED
-                        '5' -> net.kyori.adventure.text.format.NamedTextColor.DARK_PURPLE
-                        '6' -> net.kyori.adventure.text.format.NamedTextColor.GOLD
-                        '7' -> net.kyori.adventure.text.format.NamedTextColor.GRAY
-                        '8' -> net.kyori.adventure.text.format.NamedTextColor.DARK_GRAY
-                        '9' -> net.kyori.adventure.text.format.NamedTextColor.BLUE
-                        'a' -> net.kyori.adventure.text.format.NamedTextColor.GREEN
-                        'b' -> net.kyori.adventure.text.format.NamedTextColor.AQUA
-                        'c' -> net.kyori.adventure.text.format.NamedTextColor.RED
-                        'd' -> net.kyori.adventure.text.format.NamedTextColor.LIGHT_PURPLE
-                        'e' -> net.kyori.adventure.text.format.NamedTextColor.YELLOW
-                        'f' -> net.kyori.adventure.text.format.NamedTextColor.WHITE
-                        else -> net.kyori.adventure.text.format.NamedTextColor.WHITE
-                    }
-                    team.color(color)
+                    val color = ColorUtils.fromLegacyChar(colorChar)
+                    team.color(color as? NamedTextColor)
                 }
                 // For regular prefixes
                 else -> {

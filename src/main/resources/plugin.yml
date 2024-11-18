@@ -4,11 +4,11 @@ main: dev.alta.essentials.Essentials
 api-version: '1.20'
 depend: [LuckPerms]
 authors: [AltaServices]
-description: Essential command and features for the network
+description: Essential commands and features for the network
 
 permissions:
   essentials.command.ranks:
-    description: Allows access to the rank command
+    description: Allows access to the rank commands
     children:
       essentials.command.ranks.create:
         description: Allows creating new ranks
@@ -29,4 +29,6 @@ permissions:
       essentials.command.ranks.list:
         description: Allows listing all ranks
   essentials.command.setstaff:
-    description: Allows access to the setstaff command and GUI
+    description: Allows access to the setstaff commands and GUI
+  essentials.command.grant:
+    description: Allows granting ranks to players using the GUI system

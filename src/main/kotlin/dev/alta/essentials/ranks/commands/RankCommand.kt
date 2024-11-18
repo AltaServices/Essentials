@@ -1,8 +1,7 @@
-package dev.alta.essentials.ranks.command
+package dev.alta.essentials.ranks.commands
 
 import co.aikar.commands.BaseCommand
 import co.aikar.commands.annotation.*
-import co.aikar.commands.bukkit.contexts.OnlinePlayer
 import dev.alta.essentials.ranks.manager.RankManager
 import dev.alta.essentials.utils.chat.ChatUtils.sendMiniMessage
 import dev.alta.essentials.utils.annotations.register.AutoRegister
@@ -10,7 +9,7 @@ import org.bukkit.command.CommandSender
 
 @AutoRegister
 @CommandAlias("rank|ranks")
-@CommandPermission("essentials.command.ranks")
+@CommandPermission("essentials.commands.ranks")
 class RankCommand : BaseCommand() {
 
     @Default
@@ -31,7 +30,7 @@ class RankCommand : BaseCommand() {
     }
 
     @Subcommand("create")
-    @CommandPermission("essentials.command.ranks.create")
+    @CommandPermission("essentials.commands.ranks.create")
     @Description("Create a new rank")
     @Syntax("<name> [weight]")
     @CommandCompletion("@nothing @range:0-100")
@@ -46,7 +45,7 @@ class RankCommand : BaseCommand() {
     }
 
     @Subcommand("delete")
-    @CommandPermission("essentials.command.ranks.delete")
+    @CommandPermission("essentials.commands.ranks.delete")
     @Description("Delete a rank")
     @Syntax("<name>")
     @CommandCompletion("@ranks")
@@ -61,7 +60,7 @@ class RankCommand : BaseCommand() {
     }
 
     @Subcommand("setweight")
-    @CommandPermission("essentials.command.ranks.setweight")
+    @CommandPermission("essentials.commands.ranks.setweight")
     @Description("Set a rank's weight")
     @Syntax("<name> <weight>")
     @CommandCompletion("@ranks @range:0-100")
@@ -76,7 +75,7 @@ class RankCommand : BaseCommand() {
     }
 
     @Subcommand("setprefix")
-    @CommandPermission("essentials.command.ranks.setprefix")
+    @CommandPermission("essentials.commands.ranks.setprefix")
     @Description("Set a rank's prefix")
     @Syntax("<name> <prefix>")
     @CommandCompletion("@ranks @nothing")
@@ -91,7 +90,7 @@ class RankCommand : BaseCommand() {
     }
 
     @Subcommand("addperm")
-    @CommandPermission("essentials.command.ranks.addperm")
+    @CommandPermission("essentials.commands.ranks.addperm")
     @Description("Add a permission to a rank")
     @Syntax("<name> <permission>")
     @CommandCompletion("@ranks @permissions")
@@ -106,7 +105,7 @@ class RankCommand : BaseCommand() {
     }
 
     @Subcommand("removeperm")
-    @CommandPermission("essentials.command.ranks.removeperm")
+    @CommandPermission("essentials.commands.ranks.removeperm")
     @Description("Remove a permission from a rank")
     @Syntax("<name> <permission>")
     @CommandCompletion("@ranks @rankperms")
@@ -121,7 +120,7 @@ class RankCommand : BaseCommand() {
     }
 
     @Subcommand("setparent")
-    @CommandPermission("essentials.command.ranks.setparent")
+    @CommandPermission("essentials.commands.ranks.setparent")
     @Description("Set a rank's parent")
     @Syntax("<name> <parent>")
     @CommandCompletion("@ranks @ranks")
@@ -136,7 +135,7 @@ class RankCommand : BaseCommand() {
     }
 
     @Subcommand("info")
-    @CommandPermission("essentials.command.ranks.info")
+    @CommandPermission("essentials.commands.ranks.info")
     @Description("View information about a rank")
     @Syntax("<name>")
     @CommandCompletion("@ranks")
@@ -158,7 +157,7 @@ class RankCommand : BaseCommand() {
     }
 
     @Subcommand("list")
-    @CommandPermission("essentials.command.ranks.list")
+    @CommandPermission("essentials.commands.ranks.list")
     @Description("List all ranks")
     fun onList(sender: CommandSender) {
         RankManager.getAllRanks().thenAccept { ranks ->
