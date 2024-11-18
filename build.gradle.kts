@@ -8,10 +8,11 @@
 plugins {
     kotlin("jvm") version "1.9.22"
     id("com.github.johnrengelman.shadow") version "8.1.1"
+    `maven-publish`
 }
 
 group = "dev.alta"
-version = "1.0-SNAPSHOT"
+version = "1.0.0"
 
 repositories {
     mavenCentral()
@@ -40,7 +41,7 @@ dependencies {
     implementation("org.mongodb:mongodb-driver-sync:4.11.1")
     
     // ACF Paper
-    implementation("co.aikar:acf-paper:0.5.1-SNAPSHOT")
+    api("co.aikar:acf-paper:0.5.1-SNAPSHOT")
     
     // Reflections
     implementation("org.reflections:reflections:0.10.2")
@@ -92,6 +93,18 @@ tasks {
     java {
         toolchain {
             languageVersion.set(JavaLanguageVersion.of(17))
+        }
+    }
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            groupId = "dev.alta"
+            artifactId = "essentials"
+            version = "1.0.0"
+            
+            artifact(tasks.shadowJar)
         }
     }
 }

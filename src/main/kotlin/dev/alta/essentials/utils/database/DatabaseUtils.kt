@@ -1,6 +1,7 @@
 package dev.alta.essentials.utils.database
 
 import com.mongodb.client.MongoCollection
+import com.mongodb.client.MongoDatabase
 import com.mongodb.client.model.UpdateOptions
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.IndexOptions
@@ -13,12 +14,19 @@ import java.util.concurrent.CompletableFuture
 
 object DatabaseUtils {
     private val mongoClient = Essentials.mongoClient
-    private val database = mongoClient.getDatabase(
-        Essentials.configManager.getConfig().getString("mongodb.database") ?: "Essentials"
-    )
 
-    fun getCollection(name: String): MongoCollection<Document> {
-        return database.getCollection(name)
+    fun getDatabase(name: String): MongoDatabase {
+        return mongoClient.getDatabase(name)
+    }
+
+    fun getCollection(database: String, collection: String): MongoCollection<Document> {
+        return getDatabase(database).getCollection(collection)
+    }
+
+    fun getCollection(collection: String): MongoCollection<Document> {
+        return getDatabase(
+            Essentials.configManager.getConfig().getString("mongodb.database") ?: "Essentials"
+        ).getCollection(collection)
     }
 
     fun getPlayerData(uuid: UUID): CompletableFuture<Document?> {

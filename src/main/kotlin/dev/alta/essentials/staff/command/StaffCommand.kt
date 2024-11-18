@@ -11,7 +11,7 @@ import org.bukkit.command.CommandSender
 
 @AutoRegister
 @CommandAlias("setstaff")
-@CommandPermission("essentials.commands.setstaff")
+@CommandPermission("essentials.command.setstaff")
 class StaffCommand : BaseCommand() {
     
     @Default

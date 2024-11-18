@@ -1,16 +1,17 @@
 package dev.alta.essentials.utils.annotations
 
 import co.aikar.commands.BaseCommand
-import dev.alta.essentials.Essentials
+import co.aikar.commands.PaperCommandManager
+import org.bukkit.plugin.Plugin
 import dev.alta.essentials.utils.annotations.register.AutoRegister
 import org.reflections.Reflections
 import org.reflections.scanners.Scanners
 import org.bukkit.event.Listener
 
 object AnnotationUtils {
-    fun registerAll(plugin: Essentials) {
+    fun registerAll(plugin: Plugin, packageName: String, commandManager: PaperCommandManager) {
         val reflections = Reflections(
-            "dev.alta.essentials",
+            packageName,
             Scanners.TypesAnnotated
         )
         
@@ -21,7 +22,7 @@ object AnnotationUtils {
             
             when (instance) {
                 is Listener -> plugin.server.pluginManager.registerEvents(instance, plugin)
-                is BaseCommand -> Essentials.commandManager.registerCommand(instance)
+                is BaseCommand -> commandManager.registerCommand(instance)
             }
         }
     }

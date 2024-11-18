@@ -74,7 +74,12 @@ class Essentials : ExtendedJavaPlugin() {
             }
         }
         
-        AnnotationUtils.registerAll(this)
+        // Register annotated classes in the essentials package
+        AnnotationUtils.registerAll(
+            plugin = this,
+            packageName = "dev.alta.essentials",
+            commandManager = commandManager
+        )
     }
 
     override fun disable() {

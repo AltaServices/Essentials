@@ -4,7 +4,7 @@ main: dev.alta.essentials.Essentials
 api-version: '1.20'
 depend: [LuckPerms]
 authors: [AltaServices]
-description: Essential commands and features for the network
+description: Essential commands and features for Vapour
 
 permissions:
   essentials.command.ranks:
@@ -30,5 +30,3 @@ permissions:
         description: Allows listing all ranks
   essentials.command.setstaff:
     description: Allows access to the setstaff commands and GUI
-  essentials.command.grant:
-    description: Allows granting ranks to players using the GUI system
