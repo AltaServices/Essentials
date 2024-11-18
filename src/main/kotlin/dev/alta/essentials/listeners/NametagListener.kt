@@ -1,7 +1,7 @@
 package dev.alta.essentials.listeners
 
-import dev.alta.essentials.utils.annotations.register.AutoRegister
-import dev.alta.essentials.utils.nametag.NametagManager
+import dev.alta.essentials.annotations.register.AutoRegister
+import dev.alta.essentials.nametag.NametagManager
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.player.PlayerJoinEvent

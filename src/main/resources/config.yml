@@ -1,4 +1,0 @@
-# Database Settings
-mongodb:
-  connection-string: "mongodb://localhost:27017"
-  database: "Essentials"

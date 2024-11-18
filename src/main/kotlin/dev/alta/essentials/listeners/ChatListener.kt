@@ -1,13 +1,9 @@
 package dev.alta.essentials.listeners
 
-import dev.alta.essentials.Essentials
-import dev.alta.essentials.utils.adventure.MiniMessageUtils.toComponent
-import dev.alta.essentials.utils.annotations.register.AutoRegister
-import dev.alta.essentials.utils.chat.ChatUtils
-import dev.alta.essentials.utils.permission.PermissionUtils
+import dev.alta.essentials.adventure.MiniMessage.toComponent
+import dev.alta.essentials.annotations.register.AutoRegister
+import dev.alta.essentials.permission.Permission
 import io.papermc.paper.event.player.AsyncChatEvent
-import net.kyori.adventure.text.Component
-import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
@@ -24,7 +20,7 @@ class ChatListener : Listener {
         val message = PlainTextComponentSerializer.plainText().serialize(event.message())
         
         // Get prefix asynchronously since we're already in an async event
-        PermissionUtils.getPrefix(player).thenAccept { prefix ->
+        Permission.getPrefix(player).thenAccept { prefix ->
             val formattedMessage = when {
                 // For MiniMessage color tags
                 prefix?.matches(Regex("^<[a-zA-Z]+>$")) == true -> {
