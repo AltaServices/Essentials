@@ -1,14 +1,15 @@
 package dev.alta.essentials.listeners
 
 import dev.alta.essentials.annotations.register.AutoRegister
+import dev.alta.essentials.annotations.listener.Listener
 import dev.alta.essentials.nametag.NametagManager
 import org.bukkit.event.EventHandler
-import org.bukkit.event.Listener
+import org.bukkit.event.Listener as BukkitListener
 import org.bukkit.event.player.PlayerJoinEvent
 import org.bukkit.event.player.PlayerQuitEvent
 
-@AutoRegister
-class NametagListener : Listener {
+@Listener
+class NametagListener : BukkitListener {
 
     @EventHandler
     fun onPlayerJoin(event: PlayerJoinEvent) {

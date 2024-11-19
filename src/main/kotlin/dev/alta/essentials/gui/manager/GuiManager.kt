@@ -1,10 +1,11 @@
 package dev.alta.essentials.gui.manager
 
 import dev.alta.essentials.annotations.register.AutoRegister
+import dev.alta.essentials.annotations.listener.Listener
 import dev.alta.essentials.gui.Gui
 import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
-import org.bukkit.event.Listener
+import org.bukkit.event.Listener as BukkitListener
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryDragEvent
@@ -12,7 +13,8 @@ import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 
 @AutoRegister
-class GuiManager : Listener {
+@Listener
+class GuiManager : BukkitListener {
     companion object {
         private val openGuis = ConcurrentHashMap<UUID, Gui>()
 

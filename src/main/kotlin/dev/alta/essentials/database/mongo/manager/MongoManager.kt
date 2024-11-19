@@ -1,5 +1,6 @@
 package dev.alta.essentials.database.mongo.manager
 
+import com.mongodb.client.MongoCollection
 import com.mongodb.client.model.IndexOptions
 import com.mongodb.client.model.Indexes
 import com.mongodb.client.model.UpdateOptions
@@ -32,12 +33,18 @@ class MongoManager(
         }
     }
 
+    fun getCollection(name: String): MongoCollection<Document> {
+        return connection.getCollection(name)
+    }
+
     fun <T> asyncOperation(block: () -> T): CompletableFuture<T> {
-        return Async.asyncCallback(block)
+        return Async.asyncCallback(plugin) {
+            block()
+        }
     }
 
     fun createIndex(collection: String, field: String, unique: Boolean = false) {
-        connection.getCollection(collection).createIndex(
+        getCollection(collection).createIndex(
             Indexes.ascending(field),
             IndexOptions().unique(unique)
         )
@@ -47,7 +54,7 @@ class MongoManager(
         collection: String,
         filter: Document
     ): CompletableFuture<Document?> = asyncOperation {
-        connection.getCollection(collection)
+        getCollection(collection)
             .find(filter)
             .first()
     }
@@ -58,7 +65,7 @@ class MongoManager(
         update: Document,
         upsert: Boolean = false
     ): CompletableFuture<Void> = asyncOperation {
-        connection.getCollection(collection)
+        getCollection(collection)
             .updateOne(filter, update, UpdateOptions().upsert(upsert))
     }.thenAccept { }
 
@@ -66,6 +73,6 @@ class MongoManager(
         collection: String,
         filter: Document
     ): CompletableFuture<Void> = asyncOperation {
-        connection.getCollection(collection).deleteOne(filter)
+        getCollection(collection).deleteOne(filter)
     }.thenAccept { }
 }

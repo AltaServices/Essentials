@@ -50,15 +50,15 @@ class ConfigManager(private val plugin: Plugin) {
 
     private fun setupAutoSave(settings: Config) {
         autoSaveTasks[settings.name]?.let { taskId ->
-            Async.getPlugin().server.scheduler.cancelTask(taskId)
+            plugin.server.scheduler.cancelTask(taskId)
         }
 
         val taskId = if (settings.useAsyncSaving) {
-            Async.asyncTimer(settings.saveInterval * 20, settings.saveInterval * 20) {
+            Async.asyncTimer(plugin, 0, settings.saveInterval * 20) {
                 saveConfig(settings.name)
             }.taskId
         } else {
-            Async.timer(settings.saveInterval * 20, settings.saveInterval * 20) {
+            Async.timer(plugin, 0, settings.saveInterval * 20) {
                 saveConfig(settings.name, async = false)
             }.taskId
         }
@@ -85,7 +85,7 @@ class ConfigManager(private val plugin: Plugin) {
         }
 
         if (async && settings.useAsyncSaving) {
-            Async.async { saveTask() }
+            Async.async(plugin) { saveTask() }
         } else {
             saveTask()
         }
@@ -143,7 +143,7 @@ class ConfigManager(private val plugin: Plugin) {
 
     fun shutdown() {
         autoSaveTasks.values.forEach { taskId ->
-            Async.getPlugin().server.scheduler.cancelTask(taskId)
+            plugin.server.scheduler.cancelTask(taskId)
         }
         saveAllConfigs(async = false)
     }

@@ -2,15 +2,16 @@ package dev.alta.essentials.listeners
 
 import dev.alta.essentials.adventure.MiniMessage.toComponent
 import dev.alta.essentials.annotations.register.AutoRegister
+import dev.alta.essentials.annotations.listener.Listener
 import dev.alta.essentials.permission.Permission
 import io.papermc.paper.event.player.AsyncChatEvent
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
-import org.bukkit.event.Listener
+import org.bukkit.event.Listener as BukkitListener
 
-@AutoRegister
-class ChatListener : Listener {
+@Listener
+class ChatListener : BukkitListener {
     
     @EventHandler(priority = EventPriority.HIGHEST)
     fun onChat(event: AsyncChatEvent) {

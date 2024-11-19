@@ -1,5 +1,6 @@
 package dev.alta.essentials.teleport
 
+import dev.alta.essentials.Essentials
 import org.bukkit.Location
 import org.bukkit.entity.Player
 import dev.alta.essentials.async.Async
@@ -7,6 +8,7 @@ import dev.alta.essentials.player.Player.saveLastLocation
 import java.util.concurrent.CompletableFuture
 
 object Teleport {
+    private val plugin = Essentials.instance
     private val teleportRequests = mutableMapOf<Player, MutableMap<Player, Long>>()
     
     fun teleport(player: Player, target: Location, delay: Long = 0): CompletableFuture<Boolean> {
@@ -17,7 +19,7 @@ object Teleport {
                 player.sendMessage("Teleporting in ${delay/20} seconds. Don't move!")
             }
             
-            Async.later(delay) {
+            Async.later(plugin, delay) {
                 if (player.location.distance(startLoc) > 0.5) {
                     player.sendMessage("Teleport cancelled - you moved!")
                     future.complete(false)
@@ -36,7 +38,7 @@ object Teleport {
         target.sendMessage("${sender.name} has requested to teleport to you. Type /tpaccept to accept.")
         
         return CompletableFuture<Boolean>().also { future ->
-            Async.later(timeout) {
+            Async.later(plugin, timeout) {
                 if (!future.isDone) {
                     teleportRequests[target]?.remove(sender)
                     future.complete(false)
