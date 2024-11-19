@@ -2,40 +2,46 @@ package dev.alta.essentials.teleport
 
 import org.bukkit.Location
 import org.bukkit.entity.Player
-import org.bukkit.block.BlockFace
+import dev.alta.essentials.async.Async
+import dev.alta.essentials.player.Player.saveLastLocation
+import java.util.concurrent.CompletableFuture
 
 object Teleport {
-    fun findSafeLocation(location: Location): Location {
-        var loc = location.clone()
-        
-        // Check upward for 5 blocks
-        for (y in 0..5) {
-            if (isSafeLocation(loc)) return loc
-            loc = loc.add(0.0, 1.0, 0.0)
+    private val teleportRequests = mutableMapOf<Player, MutableMap<Player, Long>>()
+    
+    fun teleport(player: Player, target: Location, delay: Long = 0): CompletableFuture<Boolean> {
+        return CompletableFuture<Boolean>().also { future ->
+            val startLoc = player.location.clone()
+            
+            if (delay > 0) {
+                player.sendMessage("Teleporting in ${delay/20} seconds. Don't move!")
+            }
+            
+            Async.later(delay) {
+                if (player.location.distance(startLoc) > 0.5) {
+                    player.sendMessage("Teleport cancelled - you moved!")
+                    future.complete(false)
+                    return@later
+                }
+                
+                player.saveLastLocation()
+                player.teleport(target)
+                future.complete(true)
+            }
         }
+    }
+    
+    fun requestTeleport(sender: Player, target: Player, timeout: Long = 60000): CompletableFuture<Boolean> {
+        teleportRequests.getOrPut(target) { mutableMapOf() }[sender] = System.currentTimeMillis() + timeout
+        target.sendMessage("${sender.name} has requested to teleport to you. Type /tpaccept to accept.")
         
-        // Reset and check downward for 5 blocks
-        loc = location.clone()
-        for (y in 0..5) {
-            if (isSafeLocation(loc)) return loc
-            loc = loc.subtract(0.0, 1.0, 0.0)
+        return CompletableFuture<Boolean>().also { future ->
+            Async.later(timeout) {
+                if (!future.isDone) {
+                    teleportRequests[target]?.remove(sender)
+                    future.complete(false)
+                }
+            }
         }
-        
-        return location
-    }
-
-    private fun isSafeLocation(location: Location): Boolean {
-        val block = location.block
-        val above = block.getRelative(BlockFace.UP)
-        val below = block.getRelative(BlockFace.DOWN)
-        
-        return !block.type.isSolid && 
-               !above.type.isSolid && 
-               below.type.isSolid
-    }
-
-    fun teleportSafely(player: Player, location: Location) {
-        val safeLocation = findSafeLocation(location)
-        player.teleport(safeLocation)
     }
 } 

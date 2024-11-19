@@ -10,25 +10,25 @@ import net.luckperms.api.event.node.NodeAddEvent
 import net.luckperms.api.event.node.NodeRemoveEvent
 import net.luckperms.api.node.NodeType
 import dev.alta.essentials.async.Async
-import dev.alta.essentials.color.Color
 import net.kyori.adventure.text.format.NamedTextColor
+import net.kyori.adventure.text.format.TextColor
+import net.kyori.adventure.text.minimessage.MiniMessage
 
 object NametagManager {
-    private val scoreboard = Essentials.instance.server.scoreboardManager.mainScoreboard
+    private val plugin = Essentials.instance
+    private val scoreboard = plugin.server.scoreboardManager.mainScoreboard
+    private val miniMessage = MiniMessage.miniMessage()
 
     init {
-        // Register LuckPerms event listeners
-        val eventBus: EventBus = Essentials.luckPerms.eventBus
+        val eventBus = Essentials.luckPerms.eventBus
 
-        // Listen for prefix changes (additions)
-        eventBus.subscribe(Essentials.instance, NodeAddEvent::class.java) { event ->
+        eventBus.subscribe(plugin, NodeAddEvent::class.java) { event ->
             if (event.node.type == NodeType.PREFIX) {
                 handlePrefixChange(event.target)
             }
         }
 
-        // Listen for prefix changes (removals)
-        eventBus.subscribe(Essentials.instance, NodeRemoveEvent::class.java) { event ->
+        eventBus.subscribe(plugin, NodeRemoveEvent::class.java) { event ->
             if (event.node.type == NodeType.PREFIX) {
                 handlePrefixChange(event.target)
             }
@@ -37,9 +37,8 @@ object NametagManager {
 
     private fun handlePrefixChange(target: net.luckperms.api.model.PermissionHolder) {
         if (target is net.luckperms.api.model.group.Group) {
-            // If a group's prefix changed, update all players in that group
-            Async.sync {
-                Essentials.instance.server.onlinePlayers.forEach { player ->
+            Async.sync(plugin) {
+                plugin.server.onlinePlayers.forEach { player ->
                     Permission.getPrimaryGroup(player).thenAccept { group ->
                         if (group == target.name) {
                             updatePlayerNametag(player)
@@ -58,68 +57,55 @@ object NametagManager {
             if (team == null) {
                 team = scoreboard.registerNewTeam(teamName)
             }
-            
-            // Process the prefix and determine team color
-            when {
-                // For MiniMessage color tags
-                prefix?.matches(Regex("^<[a-zA-Z]+>$")) == true -> {
-                    val color = prefix.trim('<', '>')
-                    // Set empty prefix since we're using team color
-                    team.prefix(Component.empty())
-                    // Set team color using the parsed color
-                    team.color(net.kyori.adventure.text.format.NamedTextColor.NAMES.value(color))
+
+            val prefixComponent = when {
+                prefix == null -> Component.empty()
+                prefix.startsWith("<") && prefix.endsWith(">") -> {
+                    try {
+                        miniMessage.deserialize(prefix)
+                    } catch (e: Exception) {
+                        Component.text(prefix)
+                    }
                 }
-                // For legacy color codes
-                prefix?.matches(Regex("^[&§][0-9a-fA-FrRkKlLmMnNoO]$")) == true -> {
-                    // Set empty prefix since we're using team color
-                    team.prefix(Component.empty())
-                    // Convert legacy color code to team color
-                    val colorChar = prefix.last().toLowerCase()
-                    val color = Color.fromLegacyChar(colorChar)
-                    team.color(color as? NamedTextColor)
-                }
-                // For regular prefixes
-                else -> {
-                    team.prefix(prefix?.toComponent() ?: Component.empty())
-                    team.color(null) // Reset team color
-                }
+                else -> Component.text(prefix)
             }
+
+            team.prefix(prefixComponent)
+            
+            // Extract color from prefix component if possible
+            val color = extractColor(prefixComponent)
+            team.color(color as? NamedTextColor)
             
             // Add player to team
             team.addEntry(player.name)
             
-            // Update player's display name with same color logic
-            val displayName = when {
-                // For MiniMessage color tags
-                prefix?.matches(Regex("^<[a-zA-Z]+>$")) == true -> {
-                    val color = prefix.trim('<', '>')
-                    "<$color>${player.name}</$color>".toComponent()
-                }
-                // For legacy color codes
-                prefix?.matches(Regex("^[&§][0-9a-fA-FrRkKlLmMnNoO]$")) == true -> {
-                    Component.text("${prefix.replace('&', '§')}${player.name}")
-                }
-                // For regular prefixes
-                else -> {
-                    prefix?.toComponent()?.append(Component.text(player.name)) 
-                        ?: Component.text(player.name)
-                }
-            }
-            
+            // Update display name
+            val displayName = prefixComponent.append(Component.text(player.name))
             player.displayName(displayName)
         }
     }
 
+    private fun extractColor(component: Component): TextColor? {
+        return component.color() ?: 
+               (component as? net.kyori.adventure.text.TextComponent)?.children()
+                   ?.firstOrNull()?.color()
+    }
+
     fun removePlayerNametag(player: Player) {
-        val teamName = "LP${player.name}"
-        val team = scoreboard.getTeam(teamName)
-        team?.removeEntry(player.name)
-        team?.unregister()
+        Async.sync(plugin) {
+            val teamName = "LP${player.name}"
+            scoreboard.getTeam(teamName)?.apply {
+                removeEntry(player.name)
+                unregister()
+            }
+        }
     }
 
     fun reloadAllNametags() {
-        Essentials.instance.server.onlinePlayers.forEach { player ->
-            updatePlayerNametag(player)
+        Async.sync(plugin) {
+            plugin.server.onlinePlayers.forEach { player ->
+                updatePlayerNametag(player)
+            }
         }
     }
 }

@@ -9,26 +9,22 @@ import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
+import org.bukkit.configuration.file.FileConfiguration
 
 object Chat {
-    private const val PREFIX = "<gray>[<gradient:gold:yellow>Essentials</gradient>]</gray>"
-    
-    private object Messages {
-        const val NO_PERMISSION = "$PREFIX <red>You don't have permission to use this commands!"
-        const val PLAYER_ONLY = "$PREFIX <red>This commands can only be used by players!"
-        const val PLAYER_NOT_FOUND = "$PREFIX <red>Player not found!"
-        const val INVALID_ARGUMENTS = "$PREFIX <red>Invalid arguments! Usage: <usage>"
-    }
-    
-    fun sendMessage(sender: CommandSender, path: String, vararg placeholders: Pair<String, String>) {
-        val message = when(path) {
-            "errors.no-permission" -> Messages.NO_PERMISSION
-            "errors.player-only" -> Messages.PLAYER_ONLY
-            "errors.player-not-found" -> Messages.PLAYER_NOT_FOUND
-            "errors.invalid-arguments" -> Messages.INVALID_ARGUMENTS
-            else -> return
+    private val messages = mutableMapOf<String, String>()
+
+    fun loadMessages(config: FileConfiguration) {
+        messages.clear()
+        for (key in config.getKeys(true)) {
+            if (config.isString(key)) {
+                messages[key] = config.getString(key)!!
+            }
         }
-        
+    }
+
+    fun sendMessage(sender: CommandSender, path: String, vararg placeholders: Pair<String, String>) {
+        val message = messages[path] ?: path
         val resolvers = placeholders.map { (key, value) ->
             Placeholder.parsed(key, value)
         }

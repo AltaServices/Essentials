@@ -3,66 +3,71 @@ package dev.alta.essentials.async
 import org.bukkit.Bukkit
 import org.bukkit.plugin.Plugin
 import org.bukkit.scheduler.BukkitTask
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CompletableFuture
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
 object Async {
-    private var plugin: Plugin? = null
+    private val plugins = ConcurrentHashMap<String, Plugin>()
 
-    fun initialize(plugin: Plugin) {
-        this.plugin = plugin
+    fun registerPlugin(plugin: Plugin) {
+        plugins[plugin.name] = plugin
     }
 
-    private fun getPlugin(): Plugin {
-        return plugin ?: throw IllegalStateException("AsyncUtils not initialized! Call initialize() first")
+    fun unregisterPlugin(plugin: Plugin) {
+        plugins.remove(plugin.name)
     }
 
-    fun async(task: () -> Unit): BukkitTask {
-        return Bukkit.getScheduler().runTaskAsynchronously(getPlugin(), task)
+    fun getPlugin(pluginName: String): Plugin {
+        return plugins[pluginName] ?: throw IllegalStateException("Plugin $pluginName not registered with AsyncUtils!")
     }
 
-    fun sync(task: () -> Unit): BukkitTask {
-        return Bukkit.getScheduler().runTask(getPlugin(), task)
+    fun async(plugin: Plugin, task: () -> Unit): BukkitTask {
+        return Bukkit.getScheduler().runTaskAsynchronously(plugin, task)
     }
 
-    fun <T> asyncCallback(task: () -> T): CompletableFuture<T> {
+    fun sync(plugin: Plugin, task: () -> Unit): BukkitTask {
+        return Bukkit.getScheduler().runTask(plugin, task)
+    }
+
+    fun <T> asyncCallback(plugin: Plugin, task: () -> T): CompletableFuture<T> {
         val future = CompletableFuture<T>()
-        async {
+        async(plugin) {
             try {
                 val result = task()
-                sync { future.complete(result) }
+                sync(plugin) { future.complete(result) }
             } catch (e: Exception) {
-                sync { future.completeExceptionally(e) }
+                sync(plugin) { future.completeExceptionally(e) }
             }
         }
         return future
     }
 
-    fun later(delay: Long, task: () -> Unit): BukkitTask {
-        return Bukkit.getScheduler().runTaskLater(getPlugin(), task, delay)
+    fun later(plugin: Plugin, delay: Long, task: () -> Unit): BukkitTask {
+        return Bukkit.getScheduler().runTaskLater(plugin, task, delay)
     }
 
-    fun asyncLater(delay: Long, task: () -> Unit): BukkitTask {
-        return Bukkit.getScheduler().runTaskLaterAsynchronously(getPlugin(), task, delay)
+    fun asyncLater(plugin: Plugin, delay: Long, task: () -> Unit): BukkitTask {
+        return Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, task, delay)
     }
 
-    fun timer(delay: Long, period: Long, task: () -> Unit): BukkitTask {
-        return Bukkit.getScheduler().runTaskTimer(getPlugin(), task, delay, period)
+    fun timer(plugin: Plugin, delay: Long, period: Long, task: () -> Unit): BukkitTask {
+        return Bukkit.getScheduler().runTaskTimer(plugin, task, delay, period)
     }
 
-    fun asyncTimer(delay: Long, period: Long, task: () -> Unit): BukkitTask {
-        return Bukkit.getScheduler().runTaskTimerAsynchronously(getPlugin(), task, delay, period)
+    fun asyncTimer(plugin: Plugin, delay: Long, period: Long, task: () -> Unit): BukkitTask {
+        return Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, task, delay, period)
     }
 
-    suspend fun <T> awaitAsync(task: () -> T): T = suspendCoroutine { continuation ->
-        async {
+    suspend fun <T> awaitAsync(plugin: Plugin, task: () -> T): T = suspendCoroutine { continuation ->
+        async(plugin) {
             try {
                 val result = task()
-                sync { continuation.resume(result) }
+                sync(plugin) { continuation.resume(result) }
             } catch (e: Exception) {
-                sync { continuation.resumeWithException(e) }
+                sync(plugin) { continuation.resumeWithException(e) }
             }
         }
     }

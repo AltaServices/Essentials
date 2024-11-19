@@ -2,6 +2,10 @@ package dev.alta.essentials.location
 
 import org.bukkit.Location
 import org.bukkit.configuration.ConfigurationSection
+import org.bukkit.plugin.Plugin
+import com.mongodb.client.model.geojson.Point
+import com.mongodb.client.model.geojson.Position
+import org.bson.Document
 
 object Location {
     fun Location.serialize(): Map<String, Any> {
@@ -39,5 +43,40 @@ object Location {
 
     fun ConfigurationSection.getLocation(path: String): Location? {
         return getString(path)?.toLocation()
+    }
+
+    fun Location.toDocument(): Document {
+        return Document(mapOf(
+            "world" to world.name,
+            "x" to x,
+            "y" to y,
+            "z" to z,
+            "yaw" to yaw,
+            "pitch" to pitch
+        ))
+    }
+
+    fun Location.toGeoJson(): Point {
+        return Point(Position(x, y, z))
+    }
+
+    fun Document.toLocation(): Location? {
+        return try {
+            Location(
+                org.bukkit.Bukkit.getWorld(getString("world")),
+                getDouble("x"),
+                getDouble("y"),
+                getDouble("z"),
+                getDouble("yaw").toFloat(),
+                getDouble("pitch").toFloat()
+            )
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    fun Location.saveToConfig(plugin: Plugin, path: String) {
+        plugin.config.set(path, toConfigString())
+        plugin.saveConfig()
     }
 } 

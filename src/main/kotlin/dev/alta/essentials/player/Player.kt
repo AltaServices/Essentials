@@ -4,8 +4,30 @@ import org.bukkit.GameMode
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import dev.alta.essentials.chat.Chat.sendMiniMessage
+import org.bukkit.Location
+import java.util.UUID
 
 object Player {
+    private val cooldowns = mutableMapOf<UUID, MutableMap<String, Long>>()
+    private val lastLocations = mutableMapOf<UUID, Location>()
+    
+    fun Player.hasCooldown(key: String): Boolean {
+        val playerCooldowns = cooldowns.getOrDefault(uniqueId, mutableMapOf())
+        val lastUse = playerCooldowns[key] ?: return false
+        return System.currentTimeMillis() - lastUse < 0
+    }
+    
+    fun Player.setCooldown(key: String, durationMillis: Long) {
+        cooldowns.getOrPut(uniqueId) { mutableMapOf() }[key] = 
+            System.currentTimeMillis() + durationMillis
+    }
+    
+    fun Player.saveLastLocation() {
+        lastLocations[uniqueId] = location.clone()
+    }
+    
+    fun Player.getLastLocation(): Location? = lastLocations[uniqueId]
+    
     fun Player.reset() {
         inventory.clear()
         enderChest.clear()
@@ -34,5 +56,9 @@ object Player {
 
     fun Player.sendActionBar(message: String) {
         sendMiniMessage(message)
+    }
+
+    fun Player.isVanished(): Boolean {
+        return hasMetadata("vanished")
     }
 } 

@@ -10,19 +10,19 @@ object Permission {
     private val luckPerms = Essentials.luckPerms
 
     fun getUser(player: Player): CompletableFuture<User> {
-        return Async.asyncCallback {
+        return Async.asyncCallback(Essentials.instance) {
             luckPerms.userManager.loadUser(player.uniqueId).get()
         }
     }
 
     fun getPrimaryGroup(player: Player): CompletableFuture<String> {
-        return Async.asyncCallback {
+        return Async.asyncCallback(Essentials.instance) {
             luckPerms.getPlayerAdapter(Player::class.java).getUser(player).primaryGroup
         }
     }
 
     fun getPrefix(player: Player): CompletableFuture<String?> {
-        return Async.asyncCallback {
+        return Async.asyncCallback(Essentials.instance) {
             luckPerms.getPlayerAdapter(Player::class.java)
                 .getUser(player)
                 .cachedData
