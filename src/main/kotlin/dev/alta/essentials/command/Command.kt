@@ -30,4 +30,20 @@ object Command {
         }
         return true
     }
+
+    fun getTargetPlayerOrOffline(sender: CommandSender, name: String): Pair<Player?, String> {
+        val onlinePlayer = Bukkit.getPlayer(name)
+        if (onlinePlayer != null) {
+            return Pair(onlinePlayer, onlinePlayer.name)
+        }
+        
+        // Try to get offline player data
+        val offlinePlayer = Bukkit.getOfflinePlayer(name)
+        if (offlinePlayer.hasPlayedBefore()) {
+            return Pair(null, offlinePlayer.name ?: name)
+        }
+        
+        Chat.sendMessage(sender, "errors.player-not-found")
+        return Pair(null, "")
+    }
 } 
