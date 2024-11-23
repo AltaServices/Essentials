@@ -13,8 +13,10 @@ import org.bukkit.event.Listener as BukkitListener
 @Listener
 class ChatListener : BukkitListener {
     
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     fun onChat(event: AsyncChatEvent) {
+        if (event.isCancelled) return
+        
         event.isCancelled = true
         
         val player = event.player
