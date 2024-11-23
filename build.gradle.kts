@@ -53,6 +53,12 @@ dependencies {
     
     // Redis (Lettuce)
     implementation("io.lettuce:lettuce-core:6.3.0.RELEASE")
+    
+    // Triumph-GUI
+    implementation("dev.triumphteam:triumph-gui:3.1.7")
+    
+    // SmartInvs
+    implementation("fr.minuskube.inv:smart-invs:1.2.7")
 }
 
 tasks {
@@ -74,6 +80,7 @@ tasks {
         relocate("me.lucko.helper", "dev.alta.essentials.libs.helper")
         relocate("co.aikar.commands", "dev.alta.essentials.libs.acf")
         relocate("org.reflections", "dev.alta.essentials.libs.reflections")
+        relocate("dev.triumphteam.gui", "dev.alta.essentials.libs.gui")
         
         mergeServiceFiles()
         exclude("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA")
