@@ -50,6 +50,9 @@ dependencies {
     implementation("net.kyori:adventure-api:4.15.0")
     implementation("net.kyori:adventure-text-minimessage:4.15.0")
     implementation("net.kyori:adventure-platform-bukkit:4.3.2")
+    
+    // Redis (Lettuce)
+    implementation("io.lettuce:lettuce-core:6.3.0.RELEASE")
 }
 
 tasks {

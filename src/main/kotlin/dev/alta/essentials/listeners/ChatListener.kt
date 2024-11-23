@@ -21,29 +21,26 @@ class ChatListener : BukkitListener {
         
         val player = event.player
         val message = PlainTextComponentSerializer.plainText().serialize(event.message())
+        val viewers = event.viewers()
         
         // Get prefix asynchronously since we're already in an async event
         Permission.getPrefix(player).thenAccept { prefix ->
             val formattedMessage = when {
-                // For MiniMessage color tags
                 prefix?.matches(Regex("^<[a-zA-Z]+>$")) == true -> {
                     val color = prefix.trim('<', '>')
                     "<$color>${player.name}</$color><gray>:</gray> <white>$message</white>"
                 }
-                // For legacy color codes
                 prefix?.matches(Regex("^[&§][0-9a-fA-FrRkKlLmMnNoO]$")) == true -> {
                     "${prefix.replace('&', '§')}${player.name}<gray>:</gray> <white>$message</white>"
                 }
-                // For regular prefixes or no prefix
                 else -> {
                     val formattedPrefix = prefix ?: ""
                     "$formattedPrefix${player.name}<gray>:</gray> <white>$message</white>"
                 }
-            }
+            }.toComponent()
             
-            event.viewers().forEach { viewer ->
-                viewer.sendMessage(formattedMessage.toComponent())
-            }
+            // Send to all viewers in one batch instead of iterating
+            viewers.forEach { it.sendMessage(formattedMessage) }
         }
     }
 }
