@@ -1,0 +1,8 @@
+mongodb:
+  connection-string: "mongodb://localhost:27017"
+  database: "Essentials"
+  auth:
+    enabled: false
+    username: ""
+    password: ""
+    database: "admin"
